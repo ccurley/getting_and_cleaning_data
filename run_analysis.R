@@ -81,12 +81,12 @@ run_analysis <- function() {
         # merge data frames of different columns to form one data table
         t_merged <- paste("merged_data_", today, ".txt", sep = "")
         data <- cbind(s_merged, x_merged, activity)
-        write.table(data, t_merged)
+        write.table(data, t_merged, row.name=FALSE)
         
         # create a dataset grouped by subject and activity after applying standard deviation and average calculations
         c_merged <- paste("calculated_data_", today, ".txt", sep = "")
         dt <- data.table(data)
         c_data<- dt[, lapply(.SD, mean), by=c("subjectId", "activity")]
-        write.table(c_data, c_merged)
+        write.table(c_data, c_merged, row.name=FALSE)
         
 } # end of function
