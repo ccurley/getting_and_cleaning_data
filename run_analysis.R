@@ -9,15 +9,23 @@
 #   4. Appropriately labels the data set with descriptive variable names. 
 #   5 From the data set in step 4, creates a second, independent tidy data set with the average of 
 #     each variable for each activity and each subject.
-
+#
 # Source file https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip
+#
+# In sum, get the files, merge them, clean up the row names and labels, and write a tidy file and a calc by SD and mean file
+# Assume that there is an operation to remove legacy downloads (because I rean out of time to code that in) and assume that the
+# file names and locations in the zip are know (also because I ran out of time to code that in)
+#
+# Improvements -- optimize to shorten runtime, output files are delimted by space, change to csv and add the commas, because
+# when unpacking the text file in excel to validate the results, the column headers not align properly even though the output
+# file is correctly formated.
 
 run_analysis <- function() {
         # need to make sure you've got the libraries loaded
         library(plyr)
         library(data.table)
         
-        # GET THE REMOTE DATA
+        # get the file from the remote location
         # don't waste time and bandwidth - if the chk_dir value IS in the wkdir(), don't get it.
         # - if the unzipped chk_dir IS NOT in the wkdir(), then download it
         
@@ -39,8 +47,7 @@ run_analysis <- function() {
                 my_file <- unzip(tmp_file, exdir = dest_dir)
         } # end if
         
-        # get and merge the subject data sets
-        # from 1 to 7532 they were used for training, from 7533 to 10299 they were used for testing
+        # load files into tables that will be merged into data sets - don't need to use data frames
         s_test  <- read.table("UCI HAR Dataset/test/subject_test.txt")
         s_train <- read.table("UCI HAR Dataset/train/subject_train.txt")
         
@@ -50,29 +57,22 @@ run_analysis <- function() {
         y_test  <- read.table("UCI HAR Dataset/test/Y_test.txt")
         y_train <- read.table("UCI HAR Dataset/train/Y_train.txt")
         
-        # Merge the training and the test sets to create one data set
+        # merge the tables for subject, x, and y
         s_merged <- rbind(s_test, s_train)
         x_merged <- rbind(x_test, x_train)
         y_merged <- rbind(y_test, y_train)
         
-        # repace generic column names with descripive column names
-        # activities <- read.table("UCI HAR Dataset/activity_labels.txt", col.names=c("activity_id", "activity_label"))
-        # features <- read.table("UCI HAR Dataset/features.txt", col.names=c("feature_id", "feature_label"))
-        # colnames(x_merged) <- features[,2]
-        
-        # load lookup information
+        # construct column names and row labels
         features <- read.table("UCI HAR Dataset/features.txt", col.names=c("featureId", "featureLabel"))
         activities <- read.table("UCI HAR Dataset/activity_labels.txt", col.names=c("activityId", "activityLabel"))
-        # activities$activityLabel <- gsub("_", "", as.character(activities$activityLabel))
-        includedFeatures <- grep("-mean\\(\\)|-std\\(\\)", features$featureLabel)
+        included_features <- grep("-mean\\(\\)|-std\\(\\)", features$featureLabel)
         
-        # merge test and training data and then name them
-        # subject <- rbind(subject_test, subject_train)
+        # merge test and training data and then name them -- strip out unwanted chars (h/t rwstang)
         names(s_merged) <- "subjectId"
 
         # X <- rbind(X_test, X_train)
-        x_merged <- x_merged[, includedFeatures]
-        names(x_merged) <- gsub("\\(|\\)", "", features$featureLabel[includedFeatures])
+        x_merged <- x_merged[, included_features]
+        names(x_merged) <- gsub("\\(|\\)", "", features$featureLabel[included_features])
         
         # y_merged <- rbind(Y_test, Y_train)
         names(y_merged) = "activityId"
@@ -88,8 +88,8 @@ run_analysis <- function() {
         
         # create a dataset grouped by subject and activity after applying standard deviation and average calculations
         c_merged <- paste("calculated_data_", today, ".txt", sep = "")
-        dataDT <- data.table(data)
-        calculatedData<- dataDT[, lapply(.SD, mean), by=c("subjectId", "activity")]
-        write.table(calculatedData, c_merged)
+        dt <- data.table(data)
+        c_data<- dt[, lapply(.SD, mean), by=c("subjectId", "activity")]
+        write.table(c_data, c_merged)
         
 } # end of function
