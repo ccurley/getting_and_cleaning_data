@@ -62,19 +62,16 @@ run_analysis <- function() {
         x_merged <- rbind(x_test, x_train)
         y_merged <- rbind(y_test, y_train)
         
-        # construct column names and row labels
+        # construct column names and row labels -- strip out unwanted chars (h/t rwstang for the tip on using grep)
         features <- read.table("UCI HAR Dataset/features.txt", col.names=c("featureId", "featureLabel"))
         activities <- read.table("UCI HAR Dataset/activity_labels.txt", col.names=c("activityId", "activityLabel"))
         included_features <- grep("-mean\\(\\)|-std\\(\\)", features$featureLabel)
-        
-        # merge test and training data and then name them -- strip out unwanted chars (h/t rwstang)
+ 
         names(s_merged) <- "subjectId"
 
-        # X <- rbind(X_test, X_train)
         x_merged <- x_merged[, included_features]
         names(x_merged) <- gsub("\\(|\\)", "", features$featureLabel[included_features])
         
-        # y_merged <- rbind(Y_test, Y_train)
         names(y_merged) = "activityId"
         activity <- merge(y_merged, activities, by="activityId")$activityLabel
         
