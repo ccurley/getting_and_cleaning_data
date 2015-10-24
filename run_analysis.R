@@ -83,7 +83,8 @@ run_analysis <- function() {
         data <- cbind(s_merged, x_merged, activity)
         write.table(data, t_merged, row.name=FALSE)
         
-        # create a dataset grouped by subject and activity after applying standard deviation and average calculations
+        # create a dataset grouped by subject and activity after applying average calculations by subject and mean, droping
+        # the standard deviation
         c_merged <- paste("calculated_data_", today, ".txt", sep = "")
         dt <- data.table(data)
         c_data<- dt[, lapply(.SD, mean), by=c("subjectId", "activity")]
