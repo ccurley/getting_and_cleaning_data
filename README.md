@@ -33,8 +33,9 @@ With the data in the working directory, the function:
 
 The function will output two files:
 
-1. merged_data_2015-10-24.txt, containing the merged training and test sets, with descriptive column names and activities.
-2. calculated_data_2015-10-24.txt, a tidy data table with the average of each variable for each activity and each subject.
+1. merged_data_YYYY-MM-DD.txt, containing the merged training and test sets, with descriptive column names and activities.
+2. calculated_data_YYYY-MM-DD.txt, a tidy data table with the average of each variable for each activity and each subject.
 
-Use read.table to view the output files. Note, extracting with excel and peforming text-to-data may result in misaligned descriptive column names -- use read.table.
+If the function is called multiple times daily, it will over-write the daily file. If it is called on subsequent days, it will write to a new file.
 
+Use read.table to view the output files. Note, being an idito and extracting the text files with excel, then peforming text-to-data, may result in misaligned descriptive column names -- use read.table unless you also want to waste as much time as I did debugging a function that did not need to be debugged.
