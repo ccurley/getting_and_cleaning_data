@@ -38,4 +38,4 @@ The function will output two files:
 
 If the function is called multiple times daily, it will over-write the daily file. If it is called on subsequent days, it will write to a new file.
 
-Use read.table to view the output files. Note, being an idito and extracting the text files with excel, then peforming text-to-data, may result in misaligned descriptive column names -- use read.table unless you also want to waste as much time as I did debugging a function that did not need to be debugged.
+Use read.table to view the output files. Note, being an idiot and extracting the text files with excel, then peforming text-to-data, may result in misaligned descriptive column names -- use read.table unless you also want to waste as much time as I did debugging a function that did not need to be debugged.
