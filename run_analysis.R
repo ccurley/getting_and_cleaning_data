@@ -69,7 +69,7 @@ run_analysis <- function() {
         # merge the tables for subject, x, and y
         s_merged <- rbind(s_test, s_train)
         x_merged <- rbind(x_test, x_train)
-        y_merged <- rbind(y_test, y_train)
+        y_merged <- rbind(y_test, y_train)[, 1]
         
         # construct column names and row labels -- strip out unwanted chars (h/t rwstang for the tip on using grep)
         features <- read.table("UCI HAR Dataset/features.txt", col.names=c("featureId", "featureLabel"))
@@ -81,15 +81,15 @@ run_analysis <- function() {
         x_merged <- x_merged[, included_features]
         names(x_merged) <- gsub("\\(|\\)", "", features$featureLabel[included_features])
         
-        names(y_merged) = "activityId"
-        activity <- merge(y_merged, activities, by="activityId")$activityLabel
+        activity_names <- c("Walking", "Walking Upstairs", "Walking Downstairs", "Sitting", "Standing", "Laying")
+        activities <- activity_names[y_merged]
         
         # get today's date
         today <- Sys.Date()
         
         # merge data frames of different columns to form one data table
         t_merged <- paste("merged_data_", today, ".txt", sep = "")
-        data <- cbind(s_merged, activity, x_merged)
+        data <- cbind(s_merged, activities, x_merged)
         write.table(data, t_merged, row.name=FALSE)
         
         # create a dataset average of each variable for each activity and each subject
@@ -100,7 +100,7 @@ run_analysis <- function() {
         
         c_merged <- paste("calculated_data_", today, ".txt", sep = "")
         dt <- data.table(data)
-        c_data <- dt %>% group_by(subjectId, activity) %>% summarize_each(funs(mean))
+        c_data <- dt %>% group_by(subjectId, activities) %>% summarize_each(funs(mean))
         write.table(c_data, c_merged, row.name=FALSE)
         
 } # end of function
