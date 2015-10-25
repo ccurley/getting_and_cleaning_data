@@ -19,10 +19,19 @@
 # Improvements -- optimize to shorten runtime, output files are delimted by space, change to csv and add the commas, because
 # when unpacking the text file in excel to validate the results, the column headers not align properly even though the output
 # file is correctly formated.
+#
+# IMPORTANT! MUST load plyr before dpylr in order for summarize to work properly. Ideally, would need logic to check the loaded
+# libraries, and if dplyr is loaded and plyr is not, then unload dplyr, load plyr, then (re)load dplyr. See also:
+# https://github.com/hadley/dplyr/issues/347
+#
+# Bugged me that I didn't use any of the syntax from earlier lessons, so read up on the CRAN file for ddply and found the
+# summarize_each function. I tested with with both the lapply and the summarize_each and ended up with the same output
+# see the outfiles for October 24th and October 25th. Comments from 95 to 99 reference stackoverflow and CRAN on the how-tos.
 
 run_analysis <- function() {
         # need to make sure you've got the libraries loaded
         library(plyr)
+        library(dplyr)
         library(data.table)
         
         # get the file from the remote location
@@ -83,11 +92,15 @@ run_analysis <- function() {
         data <- cbind(s_merged, x_merged, activity)
         write.table(data, t_merged, row.name=FALSE)
         
-        # create a dataset grouped by subject and activity after applying average calculations by subject and mean, droping
-        # the standard deviation
+        # create a dataset average of each variable for each activity and each subject
+        # http://stackoverflow.com/questions/16513827/r-summarizing-multiple-columns-with-data-table
+        # c_data <- dt[, lapply(.SD, mean), by=c("subjectId", "activity")]
+        # dt %>% group_by(subjectId, activity) %>% summarize_each(funs(mean))
+        # https://cran.r-project.org/web/packages/dplyr/dplyr.pdf
+        
         c_merged <- paste("calculated_data_", today, ".txt", sep = "")
         dt <- data.table(data)
-        c_data<- dt[, lapply(.SD, mean), by=c("subjectId", "activity")]
+        c_data <- dt %>% group_by(subjectId, activity) %>% summarize_each(funs(mean))
         write.table(c_data, c_merged, row.name=FALSE)
         
 } # end of function

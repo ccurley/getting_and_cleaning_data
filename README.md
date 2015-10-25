@@ -13,8 +13,8 @@ Contents
 
 - run_analysis.R
 - codebook.md
-- calculated_data_2015-10-24.txt
-- merged_data_2015-10-24.txt
+- calculated_data_2015-10-24.txt, calculated_data_2015-10-25.txt
+- merged_data_2015-10-24.txt, merged_data_2015-10-25.txt
 
 run_analysis.R
 --------------
@@ -38,4 +38,24 @@ The function will output two files:
 
 If the function is called multiple times daily, it will over-write the daily file. If it is called on subsequent days, it will write to a new file.
 
-Use read.table to view the output files. Note, being an idiot and extracting the text files with excel, then peforming text-to-data, may result in misaligned descriptive column names -- use read.table unless you also want to waste as much time as I did debugging a function that did not need to be debugged.
+There are two outfiles in the repository for reference. The first one was generated using lapply:
+
+      dt[, lapply(.SD, mean), by=c("subjectId", "activity")]
+      
+Reference: http://stackoverflow.com/questions/16513827/r-summarizing-multiple-columns-with-data-table
+      
+I was bothered, however, that during the project I didn't use ddply from the lectures or the swirl exercises to solve this problem. I struggled a bit with 'summarize' and 'group-by' until I found 'summarize_each' in the CRAN documenation on ddply. I refactored for this line using summarize_each:
+
+      dt %>% group_by(subjectId, activity) %>% summarize_each(funs(mean))
+      
+Reference: https://cran.r-project.org/web/packages/dplyr/dplyr.pdf
+      
+I produced a second set of outfiles (the 25th outfiles) and diff'd them to determine if they were identical. They are. So, I'm either
+repeating the same error twice, or each method works.
+
+(I would point out to people who know me that I didn't use a for statement. Small victories.)
+
+Use read.table with header flaged true to view the output files. Note, being an idiot and extracting the text files with excel, then peforming text-to-data, may result in misaligned descriptive column names -- use read.table unless you also want to waste as much time as I did debugging a function that did not need to be debugged.
+
+Finally, note that plyr and ddply behave oddly with summarize when the ddply library is called first and the plyr library is called
+second. Order of operations is vital if you are using both libraries. Reference: https://github.com/hadley/dplyr/issues/347
