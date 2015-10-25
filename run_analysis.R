@@ -89,7 +89,7 @@ run_analysis <- function() {
         
         # merge data frames of different columns to form one data table
         t_merged <- paste("merged_data_", today, ".txt", sep = "")
-        data <- cbind(s_merged, x_merged, activity)
+        data <- cbind(s_merged, activity, x_merged)
         write.table(data, t_merged, row.name=FALSE)
         
         # create a dataset average of each variable for each activity and each subject
