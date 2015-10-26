@@ -27,6 +27,9 @@
 # Bugged me that I didn't use any of the syntax from earlier lessons, so read up on the CRAN file for ddply and found the
 # summarize_each function. I tested with with both the lapply and the summarize_each and ended up with the same output
 # see the outfiles for October 24th and October 25th. Comments from 95 to 99 reference stackoverflow and CRAN on the how-tos.
+#
+# Yes - this could be much more efficient, but I worked through the tables stepwise so I could debug -- and frankly -- remember
+# what I did to get the result.
 
 run_analysis <- function() {
         # need to make sure you've got the libraries loaded
@@ -58,13 +61,15 @@ run_analysis <- function() {
         
         ## load files into tables that will be merged into data sets - don't need to use data frames
         # get the activities, and strip out the labels into a factor for later use
+        #   this step can be shorted by read.table(...)[,2]. Using two steps to make it easier to follow.
         activity <- read.table("./UCI HAR Dataset/activity_labels.txt", header = FALSE)
         activity_label <- activity[, 2]
         
         # get the features, label the columnes for easy use later
         # put the features into a factor
+        #   this step can be shorted by read.table(...)[,2]. Using two steps to make it easier to follow.
         features <- read.table("UCI HAR Dataset/features.txt", col.names=c("featureid", "featurelabel"))
-        feature_label <- feature[, 2]
+        feature_label <- features[, 2]
  
         # get the subject index values train and test data       
         s_test  <- read.table("UCI HAR Dataset/test/subject_test.txt", header = FALSE)
@@ -100,7 +105,7 @@ run_analysis <- function() {
         # Before we label the names in x_merged, lets redcue the 561 obs down to 79 obs using grep
         #    we only need mean and std
         #    grep will return a int vector of only the columnes where "mean" or "std" are hit
-        included_features <- grep("mean|std", features$featurelabel)
+        included_features <- grep("mean|std", feature_label)
  
         # now we can subset x_merged with the vector of ints where "mean" or "std" are located
         x_merged <- x_merged[, included_features]
