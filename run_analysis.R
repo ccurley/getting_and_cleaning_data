@@ -73,7 +73,7 @@ run_analysis <- function() {
         
         # construct column names and row labels -- strip out unwanted chars (h/t rwstang for the tip on using grep)
         features <- read.table("UCI HAR Dataset/features.txt", col.names=c("featureId", "featureLabel"))
-        included_features <- grep("-mean\\(\\)|-std\\(\\)", features$featureLabel)
+        included_features <- grep("-mean|-std", features$featureLabel)
  
         names(s_merged) <- "subjectId"
 
