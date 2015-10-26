@@ -56,50 +56,78 @@ run_analysis <- function() {
                 my_file <- unzip(tmp_file, exdir = dest_dir)
         } # end if
         
-        # load files into tables that will be merged into data sets - don't need to use data frames
-        s_test  <- read.table("UCI HAR Dataset/test/subject_test.txt")
-        s_train <- read.table("UCI HAR Dataset/train/subject_train.txt")
+        ## load files into tables that will be merged into data sets - don't need to use data frames
+        # get the activities, and strip out the labels into a factor for later use
+        activity <- read.table("./UCI HAR Dataset/activity_labels.txt", header = FALSE)
+        activity_label <- activity[, 2]
         
-        x_test  <- read.table("UCI HAR Dataset/test/X_test.txt")
-        x_train <- read.table("UCI HAR Dataset/train/X_train.txt")
-                       
-        y_test  <- read.table("UCI HAR Dataset/test/Y_test.txt")
-        y_train <- read.table("UCI HAR Dataset/train/Y_train.txt")
-        
-        # merge the tables for subject, x, and y
-        s_merged <- rbind(s_test, s_train)
-        x_merged <- rbind(x_test, x_train)
-        y_merged <- rbind(y_test, y_train)[, 1]
-        
-        # construct column names and row labels -- strip out unwanted chars (h/t rwstang for the tip on using grep)
-        features <- read.table("UCI HAR Dataset/features.txt", col.names=c("featureId", "featureLabel"))
-        included_features <- grep("-mean|-std", features$featureLabel)
+        # get the features, label the columnes for easy use later
+        # put the features into a factor
+        features <- read.table("UCI HAR Dataset/features.txt", col.names=c("featureid", "featurelabel"))
+        feature_label <- feature[, 2]
  
-        names(s_merged) <- "subjectId"
+        # get the subject index values train and test data       
+        s_test  <- read.table("UCI HAR Dataset/test/subject_test.txt", header = FALSE)
+        s_train <- read.table("UCI HAR Dataset/train/subject_train.txt", header = FALSE)
 
+        # get the measures for train and test        
+        x_test  <- read.table("UCI HAR Dataset/test/X_test.txt", header = FALSE)
+        x_train <- read.table("UCI HAR Dataset/train/X_train.txt", header = FALSE)
+        
+        # get the feature index values for train and test              
+        y_test  <- read.table("UCI HAR Dataset/test/Y_test.txt", header = FALSE)
+        y_train <- read.table("UCI HAR Dataset/train/Y_train.txt", header = FALSE)
+        
+        # merge the tables for subject, x, and y -- we'll cbind them later.
+        s_merged <- rbind(s_train, s_test)
+        x_merged <- rbind(x_train, x_test)
+        y_merged <- rbind(y_train, y_test)
+        
+        # name column 1 in the subject set for ease of use later
+        names(s_merged) <- "subjectid"
+        
+        # add a column to y_merged with the labels in it. This is abstract, so remember this is what you did:
+        #    if y_merged[1,1]  is 5, activity_label[5] is STANDING, making y_merged[1,2]  = STANDING
+        #    if y_merged[1,28] is 4, activity label[4] is SITTING,  making y_merged[1,28] = SITTING
+        #    row by row, find the value of the first observation, match it to the corresponding value in the factor
+        #    and write that value in the new column.
+        # when finished, name the columns for easy use, and strip out the codes -- since we only left them there for 
+        #    debugging anyway.
+        y_merged[,2]=activity_label[y_merged[,1]]
+        names(y_merged) <- c("id","activity")
+        y_merged <- select(y_merged, activity)
+        
+        # Before we label the names in x_merged, lets redcue the 561 obs down to 79 obs using grep
+        #    we only need mean and std
+        #    grep will return a int vector of only the columnes where "mean" or "std" are hit
+        included_features <- grep("mean|std", features$featurelabel)
+ 
+        # now we can subset x_merged with the vector of ints where "mean" or "std" are located
         x_merged <- x_merged[, included_features]
-        names(x_merged) <- gsub("\\(|\\)", "", features$featureLabel[included_features])
         
-        activity_names <- c("Walking", "Walking Upstairs", "Walking Downstairs", "Sitting", "Standing", "Laying")
-        activities <- activity_names[y_merged]
+        # and finally, now that we've got the x_merged set reduce, we can label it with only the label strings
+        # for those columns where grep found "mean" or "std", and we'll take out the "()"s for good measure
+        names(x_merged) <- gsub("\\(|\\)", "", features$featurelabel[included_features])
         
-        # get today's date
+        # get today's date, so we can use it later when creating file names.
         today <- Sys.Date()
         
         # merge data frames of different columns to form one data table
         t_merged <- paste("merged_data_", today, ".txt", sep = "")
-        data <- cbind(s_merged, activities, x_merged)
+        data <- cbind(s_merged, y_merged, x_merged)
         write.table(data, t_merged, row.name=FALSE)
         
         # create a dataset average of each variable for each activity and each subject
-        # http://stackoverflow.com/questions/16513827/r-summarizing-multiple-columns-with-data-table
-        # c_data <- dt[, lapply(.SD, mean), by=c("subjectId", "activity")]
-        # dt %>% group_by(subjectId, activity) %>% summarize_each(funs(mean))
-        # https://cran.r-project.org/web/packages/dplyr/dplyr.pdf
+        #   http://stackoverflow.com/questions/16513827/r-summarizing-multiple-columns-with-data-table
+        #   c_data <- dt[, lapply(.SD, mean), by=c("subjectId", "activity")]
+        #   dt %>% group_by(subjectId, activity) %>% summarize_each(funs(mean))
+        #   https://cran.r-project.org/web/packages/dplyr/dplyr.pdf
+        # I could have done that more economcially, but the data tables are incremented for debugging and
         
         c_merged <- paste("calculated_data_", today, ".txt", sep = "")
         dt <- data.table(data)
-        c_data <- dt %>% group_by(subjectId, activities) %>% summarize_each(funs(mean))
+        c_data <- dt %>% group_by(subjectid, activity) %>% summarize_each(funs(mean))
+        c_data <- c_data[order(subjectid)]
         write.table(c_data, c_merged, row.name=FALSE)
         
 } # end of function
