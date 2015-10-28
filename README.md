@@ -36,6 +36,8 @@ The function will output two files:
 1. merged_data_YYYY-MM-DD.txt, containing the merged training and test sets, with descriptive column names and activities.
 2. calculated_data_YYYY-MM-DD.txt, a tidy data table with the average of each variable for each activity and each subject.
 
+Reference the code book for details on the variables and observations in the output files.
+
 If the function is called multiple times daily, it will over-write the daily file. If it is called on subsequent days, it will write to a new file.
 
 There are two outfiles in the repository for reference. The first one was generated using lapply:
@@ -54,6 +56,8 @@ I produced a second set of outfiles (the 25th outfiles) and diff'd them to deter
 repeating the same error twice, or each method works.
 
 (I would point out to people who know me that I didn't use a for statement. Small victories.)
+
+The function code is not especially efficient on purpose -- could have used fewer data frames and substitutions. I broke it out this way this way because I wanted to be able to follow along and debug errors more easily. I found it easy to get lost in this exercise and I preferred inefficiency to perplexation.
 
 Use read.table with header flaged true to view the output files. Note, being an idiot and extracting the text files with excel, then peforming text-to-data, may result in misaligned descriptive column names -- use read.table unless you also want to waste as much time as I did debugging a function that did not need to be debugged.
 
